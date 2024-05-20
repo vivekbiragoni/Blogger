@@ -1,0 +1,28 @@
+{
+  "name": "4.5-blogger",
+  "version": "1.0.0",
+  "description": "This is the blogger website builder using express nodejs and ejs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blog"
+  ],
+  "author": "vivek",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vivekbiragoni/blogger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vivekbiragoni/blogger/issues"
+  },
+  "homepage": "https://github.com/vivekbiragoni/blogger#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2"
+  }
+}

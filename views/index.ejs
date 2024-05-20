@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+  <div id="posts">
+    <% posts.forEach(post => { %>
+      <div class="post">
+        <h3><%= post.title %></h3>
+        <p><%= post.content.substring(0, 100) %>...</p> <!-- Display only the first 100 characters as a preview -->
+        <a href="/view/<%= post.id %>" class="btn btn-outline-success">Read More</a> <!-- Button for "Read More" -->
+        <a href="/edit/<%= post.id %>" class="btn btn-outline-secondary">Edit</a> <!-- Button for "Edit" -->
+        <form action="/delete/<%= post.id %>" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger">Delete</button> <!-- Button for "Delete" -->
+        </form>
+      </div>
+    <% }) %>
+  </div>
+<%- include('partials/footer') %>
+

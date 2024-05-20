@@ -1,0 +1,14 @@
+<%- include('partials/header') %>
+<main>
+  <h2>Search Results for "<%= query %>"</h2>
+  <% if (searchResults.length > 0) { %>
+    <ul>
+      <% searchResults.forEach(post => { %>
+        <li><a href="/view/<%= post.id %>"><%= post.title %></a></li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No results found.</p>
+  <% } %>
+</main>
+<%- include('partials/footer') %>
