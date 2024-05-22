@@ -2,11 +2,12 @@ import express from "express";
 import bodyParser from "body-parser";
 import pkg from "pg";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import session from "express-session";
 
 dotenv.config();
 
 const { Pool } = pkg;
-
 const app = express();
 const PORT = 3000;
 
@@ -18,27 +19,101 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-// Set EJS as templating engine
-app.set("view engine", "ejs");
+
+// Set up session middleware
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true
+}));
 
 // Middleware to serve static files
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// const posts = [];
+// Set EJS as templating engine
+app.set("view engine", "ejs");
 
-let posts = [
-  {
-    id: 1,
-    title: "First Post",
-    content: "This is the content of the first post.",
-  },
-  {
-    id: 2,
-    title: "Second Post",
-    content: "This is the content of the second post.",
-  },
-];
+// Middleware to make the session available in templates
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
+
+// render registration form
+app.get('/register', (req, res) => {
+  res.render('register.ejs');
+});
+
+// encrypting users password and pushing it into users table
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+  try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Insert the new user into the database
+      await pool.query(
+          'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
+          [username, email, hashedPassword]
+      );
+      res.redirect('/login');
+  } catch (err) {
+      console.error(err);
+      res.send('Error ' + err);
+  }
+});
+
+// render the login form
+app.get('/login', (req, res) => {
+  res.render('login.ejs');
+});
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        // Find the user in the database
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+
+            // Compare the password with the hashed password
+            if (await bcrypt.compare(password, user.password)) {
+                // Set up the user session
+                req.session.userId = user.id;
+                res.redirect('/');
+            } else {
+                res.send('Incorrect password');
+            }
+        } else {
+            res.send('User not found');
+        }
+    } catch (err) {
+        console.error(err);
+        res.send('Error ' + err);
+    }
+});
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.redirect('/');
+    }
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+  });
+});
+
+function checkAuth(req, res, next) {
+  if (req.session.userId) {
+      next();
+  } else {
+      res.redirect('/login');
+  }
+}
+
+
+
 
 // Routes
 // home page
@@ -53,11 +128,11 @@ app.get("/", async (req, res) => {
 });
 
 // create
-app.get("/create", (req, res) => {
+app.get("/create", checkAuth, (req, res) => {
   res.render("create.ejs");
 });
 
-app.post("/create", async (req, res) => {
+app.post("/create", checkAuth, async (req, res) => {
   try {
     const { title, content } = req.body;
     await pool.query("INSERT INTO posts (title, content) VALUES ($1, $2)", [
@@ -74,9 +149,7 @@ app.post("/create", async (req, res) => {
 // view
 app.get("/view/:id", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM posts WHERE id = $1", [
-      req.params.id,
-    ]);
+    const result = await pool.query("SELECT * FROM posts WHERE id = $1", [req.params.id,]);
     if (result.rows.length > 0) {
       res.render("view", { post: result.rows[0] });
     } else {
@@ -89,26 +162,30 @@ app.get("/view/:id", async (req, res) => {
 });
 
 // search
-app.get('/search', async (req, res) => {
+app.get("/search", async (req, res) => {
   try {
     const query = req.query.q.toLowerCase();
-    const result = await pool.query('SELECT * FROM posts WHERE LOWER(title) LIKE $1 OR LOWER(content) LIKE $2', [`%${query}%`, `%${query}%`]);
-    res.render('search', { query, searchResults: result.rows });
+    const result = await pool.query(
+      "SELECT * FROM posts WHERE LOWER(title) LIKE $1 OR LOWER(content) LIKE $2",
+      [`%${query}%`, `%${query}%`]
+    );
+    res.render("search", { query, searchResults: result.rows });
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
   }
 });
 
-
 // edit
-app.get('/edit/:id', async (req, res) => {
+app.get("/edit/:id", checkAuth, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM posts WHERE id = $1', [req.params.id]);
+    const result = await pool.query("SELECT * FROM posts WHERE id = $1", [
+      req.params.id,
+    ]);
     if (result.rows.length > 0) {
-      res.render('edit', { post: result.rows[0] });
+      res.render("edit", { post: result.rows[0] });
     } else {
-      res.redirect('/');
+      res.redirect("/");
     }
   } catch (err) {
     console.error(err);
@@ -116,11 +193,14 @@ app.get('/edit/:id', async (req, res) => {
   }
 });
 
-app.post('/edit/:id', async (req, res) => {
+app.post("/edit/:id", checkAuth, async (req, res) => {
   try {
     const { title, content } = req.body;
-    await pool.query('UPDATE posts SET title = $1, content = $2 WHERE id = $3', [title, content, req.params.id]);
-    res.redirect('/');
+    await pool.query(
+      "UPDATE posts SET title = $1, content = $2 WHERE id = $3",
+      [title, content, req.params.id]
+    );
+    res.redirect("/");
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -128,16 +208,15 @@ app.post('/edit/:id', async (req, res) => {
 });
 
 // delete
-app.post('/delete/:id', async (req, res) => {
+app.post("/delete/:id", checkAuth, async (req, res) => {
   try {
-    await pool.query('DELETE FROM posts WHERE id = $1', [req.params.id]);
-    res.redirect('/');
+    await pool.query("DELETE FROM posts WHERE id = $1", [req.params.id]);
+    res.redirect("/");
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

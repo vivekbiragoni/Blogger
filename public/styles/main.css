@@ -89,3 +89,31 @@ footer {
   padding: 5px 10px;
   color: ;
 }
+
+.navbar .btn {
+  margin-left: 0.5rem;
+}
+/* Add some spacing between the buttons and form */
+.navbar .d-flex .btn {
+  margin-left: 0.5rem;
+}
+
+/* Ensure the search form and buttons are aligned properly */
+.navbar .form-control {
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 992px) {
+  .navbar .form-control {
+    margin-bottom: 0.5rem;
+  }
+  .navbar .d-flex {
+    flex-direction: column;
+  }
+  .navbar .d-flex .btn {
+    margin-left: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+
