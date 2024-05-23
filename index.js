@@ -113,19 +113,52 @@ function checkAuth(req, res, next) {
 }
 
 
+async function checkOwnership(req, res, next) {
+  const { id } = req.params; // Assuming the post ID is passed as a URL parameter
+  const userId = req.session.userId;
+
+  try {
+    const result = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
+    const post = result.rows[0];
+
+    if (!post) {
+      return res.status(404).send('Post not found.');
+    }
+
+    if (post.user_id !== userId) {
+      return res.status(403).send('You are not authorized to perform this action.');
+    }
+
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+}
+
+
+
 
 
 // Routes
 // home page
 app.get("/", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM posts ORDER BY id ASC");
-    res.render("index.ejs", { posts: result.rows });
+    const userId = req.session.userId; 
+    const result = await pool.query(`
+      SELECT posts.id, posts.title, posts.content, posts.created_at, users.username, posts.user_id
+      FROM posts
+      JOIN users ON posts.user_id = users.id
+      WHERE posts.visibility = TRUE OR posts.user_id = $1
+      ORDER BY posts.created_at DESC
+    `, [userId]);
+    res.render("index.ejs", { posts: result.rows, session: req.session });
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
   }
 });
+
 
 // create
 app.get("/create", checkAuth, (req, res) => {
@@ -134,17 +167,19 @@ app.get("/create", checkAuth, (req, res) => {
 
 app.post("/create", checkAuth, async (req, res) => {
   try {
-    const { title, content } = req.body;
-    await pool.query("INSERT INTO posts (title, content) VALUES ($1, $2)", [
-      title,
-      content,
-    ]);
+    const { title, content, visibility } = req.body;
+    const userId = req.session.userId; 
+    await pool.query(
+      "INSERT INTO posts (title, content, visibility, user_id) VALUES ($1, $2, $3, $4)",
+      [title, content, visibility === 'on', userId]
+    );
     res.redirect("/");
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
   }
 });
+
 
 // view
 app.get("/view/:id", async (req, res) => {
@@ -177,7 +212,7 @@ app.get("/search", async (req, res) => {
 });
 
 // edit
-app.get("/edit/:id", checkAuth, async (req, res) => {
+app.get("/edit/:id", checkAuth, checkOwnership,  async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM posts WHERE id = $1", [
       req.params.id,
@@ -193,7 +228,7 @@ app.get("/edit/:id", checkAuth, async (req, res) => {
   }
 });
 
-app.post("/edit/:id", checkAuth, async (req, res) => {
+app.post("/edit/:id", checkAuth, checkOwnership,  async (req, res) => {
   try {
     const { title, content } = req.body;
     await pool.query(
@@ -208,7 +243,7 @@ app.post("/edit/:id", checkAuth, async (req, res) => {
 });
 
 // delete
-app.post("/delete/:id", checkAuth, async (req, res) => {
+app.post("/delete/:id", checkAuth, checkOwnership,  async (req, res) => {
   try {
     await pool.query("DELETE FROM posts WHERE id = $1", [req.params.id]);
     res.redirect("/");

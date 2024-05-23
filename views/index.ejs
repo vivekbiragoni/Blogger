@@ -1,18 +1,23 @@
 <%- include('partials/header') %>
 
-<div id="posts">
+<div class="container">
+  <h1>Recent Posts</h1>
+  <div id="posts">
     <% posts.forEach(post => { %>
-        <div class="post">
-            <h3><%= post.title %></h3>
-            <p><%= post.content.substring(0, 100) %>...</p> <!-- Display only the first 100 characters as a preview -->
-            <a href="/view/<%= post.id %>" class="btn btn-outline-success">Read More</a> <!-- Button for "Read More" -->
-            <% if (session.userId) { %> <!-- Show edit and delete buttons only if the user is logged in -->
-                <a href="/edit/<%= post.id %>" class="btn btn-outline-secondary">Edit</a> <!-- Button for "Edit" -->
-                <form action="/delete/<%= post.id %>" method="POST" style="display:inline;">
-                    <button type="submit" class="btn btn-outline-danger">Delete</button> <!-- Button for "Delete" -->
-                </form>
-            <% } %>
-        </div>
+      <div class="post">
+        <h3><%= post.title %></h3>
+        <p><%= post.content.substring(0, 100) %>...</p> <!-- Display only the first 100 characters as a preview -->
+        <small>Posted by <%= post.username %> on <%= new Date(post.created_at).toLocaleString() %></small>
+        <a href="/view/<%= post.id %>" class="btn btn-outline-success">Read More</a> <!-- Button for "Read More" -->
+        <% if (session.userId && session.userId === post.user_id) { %> 
+          <a href="/edit/<%= post.id %>" class="btn btn-outline-secondary">Edit</a>
+          <form action="/delete/<%= post.id %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+          </form>
+        <% } %>
+      </div>
     <% }) %>
+  </div>
 </div>
+
 <%- include('partials/footer') %>
