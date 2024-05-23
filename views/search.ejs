@@ -1,14 +1,19 @@
 <%- include('partials/header') %>
-<main>
-  <h2>Search Results for "<%= query %>"</h2>
+<main class="container my-4">
+  <h2 class="mb-4">Search Results for "<%= query %>"</h2>
   <% if (searchResults.length > 0) { %>
-    <ul>
+    <div class="list-group">
       <% searchResults.forEach(post => { %>
-        <li><a href="/view/<%= post.id %>"><%= post.title %></a></li>
+        <a href="/view/<%= post.id %>" class="list-group-item list-group-item-action">
+          <h5 class="mb-1"><%= post.title %></h5>
+          <p class="mb-1"><%= post.excerpt %></p>
+        </a>
       <% }) %>
-    </ul>
+    </div>
   <% } else { %>
-    <p>No results found.</p>
+    <div class="alert alert-warning" role="alert">
+      No results found.
+    </div>
   <% } %>
 </main>
 <%- include('partials/footer') %>

@@ -81,6 +81,7 @@ app.post('/login', async (req, res) => {
             if (await bcrypt.compare(password, user.password)) {
                 // Set up the user session
                 req.session.userId = user.id;
+                req.session.username = user.username;
                 res.redirect('/');
             } else {
                 res.send('Incorrect password');
