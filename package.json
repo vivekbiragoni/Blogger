@@ -1,16 +1,23 @@
 {
-  "name": "4.5-blogger",
+  "name": "Blogger",
   "version": "1.0.0",
-  "description": "This is the blogger website builder using express nodejs and ejs",
+  "description": "This is the blogger website builder using express, nodejs, and ejs.",
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "blog"
+    "blog",
+    "express",
+    "nodejs",
+    "ejs"
   ],
-  "author": "vivek",
+  "author": "Vivek Biragoni  (https://github.com/vivekbiragoni)",
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -29,5 +36,10 @@
     "express-session": "^1.18.0",
     "pg": "^8.11.5",
     "quill": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "eslint": "^8.39.0",
+    "prettier": "^2.8.4"
   }
 }
