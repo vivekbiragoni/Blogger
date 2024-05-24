@@ -4,6 +4,8 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import axios from "axios";
+
 
 dotenv.config();
 
@@ -181,13 +183,14 @@ app.post("/create", checkAuth, async (req, res) => {
   }
 });
 
-
 // view
 app.get("/view/:id", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM posts WHERE id = $1", [req.params.id,]);
+    const result = await pool.query("SELECT * FROM posts WHERE id = $1", [req.params.id]);
     if (result.rows.length > 0) {
-      res.render("view", { post: result.rows[0] });
+      const post = result.rows[0];
+      const markdownContent = await convertMarkdownToHTML(post.content);
+      res.render("view", { post, markdownContent });
     } else {
       res.redirect("/");
     }
@@ -196,6 +199,19 @@ app.get("/view/:id", async (req, res) => {
     res.send("Error " + err);
   }
 });
+
+async function convertMarkdownToHTML(markdown) {
+  try {
+    const response = await axios.post('https://api.github.com/markdown', {
+      text: markdown,
+      mode: 'markdown'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error converting markdown:', error);
+    return markdown; // Return original markdown on error
+  }
+}
 
 // search
 app.get("/search", async (req, res) => {
