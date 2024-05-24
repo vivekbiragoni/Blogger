@@ -1,57 +1,109 @@
-# Blogger Website 💻
 
-This project is a simple website builder for bloggers, leveraging Express.js, Node.js, and EJS for development.
 
-## Features 🚀
+# Blogger Website ✍️
 
-- **Create, Edit, and Delete Posts:** Users can create new blog posts, edit existing ones, and delete posts they no longer need.
-- **Search Functionality:** The website offers a search feature that allows users to find posts based on keywords.
-- **Minimalistic Design:** The design focuses on providing a distraction-free writing experience for bloggers.
-- **Database Integration:** Utilizes PostgreSQL for data persistence, ensuring that posts are stored securely.
+This project is a simple website builder for bloggers, built using Express.js, Node.js, and EJS.
+
+## Description 📜
+
+A blogging platform that allows users to create, edit, delete, and search for blog posts. It features a minimalistic design and includes user authentication.
+
+## Features 🌟
+
+- Create, edit, and delete blog posts
+- Search functionality to find posts based on keywords
+- User authentication
+- Dark mode toggle
+- Minimalistic design for a distraction-free writing experience
+- PostgreSQL database integration for data persistence
 
 ## Getting Started 🛠️
 
 To set up and run this project on your local machine, follow these steps:
 
-1. **Clone the Repository:** Use `git clone` to clone this repository to your local machine.
-2. **Install Dependencies:** Run `npm install` to install the necessary dependencies for the project.
-3. **Database Setup:** Set up a PostgreSQL database and create a database named `myblogdb`.
-4. **Environment Variables:** Create a `.env` file in the project's root directory and add the following variables:
+1. **Clone the Repository**: Use `git clone` to clone this repository to your local machine.
+    ```bash
+    git clone https://github.com/vivekbiragoni/Blogger.git
+    ```
+
+2. **Install Dependencies**: Run `npm install` to install the necessary dependencies for the project.
+    ```bash
+    npm install
+    ```
+
+3. **Database Setup**: Set up a PostgreSQL database. If you haven't already, create a database named `myblogdb` (or choose a different name if you prefer).
+
+4. **Environment Variables**: Create a `.env` file in the project's root directory and add the following variables. Make sure to replace `your_postgresql_password` with your actual PostgreSQL password, and `myblogdb` with your database name if it differs.
+
     ```plaintext
     DB_HOST=localhost
     DB_PORT=5432
     DB_USER=postgres
-    DB_PASSWORD=yourpassword
+    DB_PASSWORD=your_postgresql_password
     DB_NAME=myblogdb
     ```
-5. **Database Initialization:** Initialize the database schema by executing the SQL script provided in the repository.
-6. **Start the Server:** Launch the server by running `npm start`.
-7. **Access the Website:** Open your web browser and navigate to `http://localhost:3000` to access the website.
 
-## Usage 📝
+5. **Database Initialization**: Initialize the database schema by executing the following SQL scripts:
 
-- **Creating Posts:** Click on the "+ New Post" button to create a new blog post.
-- **Editing and Deleting Posts:** Utilize the corresponding buttons to edit or delete existing posts.
-- **Searching Posts:** Use the search bar to find posts containing specific keywords.
+    - **Create the `users` table**:
+      ```sql
+      CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) NOT NULL UNIQUE,
+          password VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL UNIQUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      ```
 
-## Technologies Used 🛠️
+    - **Create the `posts` table**:
+      ```sql
+      CREATE TABLE IF NOT EXISTS posts (
+          id SERIAL PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          content TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          user_id INTEGER,
+          visibility BOOLEAN DEFAULT false,
+          CONSTRAINT fk_user
+            FOREIGN KEY(user_id) 
+            REFERENCES users(id)
+            ON DELETE CASCADE
+      );
+      ```
 
-- **Express.js:** Web application framework for Node.js.
-- **Node.js:** JavaScript runtime environment.
-- **EJS (Embedded JavaScript):** Templating engine for generating HTML markup with JavaScript.
-- **Bootstrap:** Front-end framework for building responsive and mobile-first websites.
-- **Font Awesome:** Icon toolkit for adding scalable vector icons to web projects.
-- **PostgreSQL:** Open-source relational database management system.
+6. **Start the Server**: Launch the server by running `npm start`.
+    ```bash
+    npm start
+    ```
+
+7. **Access the Website**: Open your web browser and navigate to `http://localhost:3000` to access the website.
+
+## Usage 🚀
+
+- Create a new post by clicking on the "+ New Post" button.
+- Edit or delete existing posts using the corresponding buttons.
+- Use the search bar to find posts containing specific keywords.
+- Toggle dark mode using the dark mode button.
+
+## Technologies Used 💻
+
+- Express.js
+- Node.js
+- EJS (Embedded JavaScript)
+- Bootstrap
+- Font Awesome
+- PostgreSQL
 
 ## Contributing 🤝
 
-Contributions to this project are welcome! Feel free to fork the repository, make improvements, and submit pull requests.
+Contributions are welcome! Feel free to fork this repository and submit pull requests.
 
 ## License 📄
 
 This project is licensed under the [MIT License](https://github.com/vivekbiragoni/blogger/blob/main/LICENSE).
 
-## Author ✍️
+## Author 🧑‍💻
 
-- **Vivek Biragoni**
+- Vivek Biragoni
 
